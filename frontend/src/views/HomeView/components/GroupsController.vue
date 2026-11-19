@@ -53,6 +53,12 @@ const groups = computed(() => {
     .sort((a, b) => {
       const aIndex = proxies.GLOBAL?.all.indexOf(a.name) || 0
       const bIndex = proxies.GLOBAL?.all.indexOf(b.name) || 0
+      // 都不在 GLOBAL.all 中 → 保持原相对顺序（稳定排序）
+      if (aIndex === -1 && bIndex === -1) return 0
+      // 只有一方不在 → 不在的排到最后
+      if (aIndex === -1) return 1
+      if (bIndex === -1) return -1
+      // 都在 → 按下标升序
       return aIndex - bIndex
     })
     .concat(proxies.GLOBAL || [])

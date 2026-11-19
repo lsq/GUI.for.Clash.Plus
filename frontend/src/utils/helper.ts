@@ -13,7 +13,7 @@ import {
   WindowReloadApp,
   WriteFile,
 } from '@/bridge'
-import { CoreWorkingDirectory } from '@/constant/kernel'
+import { CoreWorkingDirectory, } from '@/constant/kernel'
 import { OS, RequestProxyMode } from '@/enums/app'
 import { ProxyGroupType, RulesetBehavior, RulesetFormat } from '@/enums/kernel'
 import i18n from '@/lang'
@@ -381,7 +381,9 @@ export const exitApp = async () => {
 
   try {
     if (kernelApiStore.running && appSettings.app.closeKernelOnExit) {
+      if (!appSettings.app.kernel.panelOnlyMode) {
       await kernelApiStore.stopCore()
+      }
       if (appSettings.app.autoSetSystemProxy) {
         await envStore.clearSystemProxy()
       }
@@ -438,8 +440,36 @@ export const getKernelRuntimeEnv = (isAlpha = false) => {
   }, {} as Recordable)
 }
 
-export const getKernelRuntimeArgs = (isAlpha = false) => {
+export const getKernelRuntimeArgs = (isAlpha = false, overrides?: { homeDir?: string, configFile?: string}) => {
   const appSettings = useAppSettingsStore()
   const { args } = isAlpha ? appSettings.app.kernel.alpha : appSettings.app.kernel.main
-  return args.map((arg) => processMagicVariables(arg))
+  const result = args.map((arg) => processMagicVariables(arg))
+
+  if (!overrides?.homeDir) return result
+
+  // 替换 -d 的值（兼容 '-d value' 和 '-d=value' 两种写法）
+  let dFound = false
+  for (let i = 0; i < result.length; i++) {
+    if (result[i] === '-d' && i + 1 < result.length) {
+      result[i + 1] = overrides.homeDir
+      dFound = true
+      break
+    }
+    if (result[i]!.startsWith('-d=')) {
+      result[i] = `-d=${overrides.homeDir}`
+      dFound = true
+      break
+    }
+  }
+  if (!dFound) result.push('-d', overrides.homeDir)
+
+  // 外部配置文件名不是 config.yaml 时需要显式 -f
+  if (overrides.configFile) {
+    const baseName = overrides.configFile.split(/[\\/]/).pop()
+    if (baseName !== 'config.yaml') {
+      result.push('-f', overrides.configFile)
+    }
+  }
+
+  return result
 }

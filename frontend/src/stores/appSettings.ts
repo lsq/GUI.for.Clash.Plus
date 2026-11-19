@@ -93,6 +93,8 @@ export const useAppSettingsStore = defineStore('app-settings', () => {
       realMemoryUsage: false,
       branch: Branch.Main,
       profile: '',
+      panelOnlyMode: false,
+      externalConfigPath: '',
       autoClose: true,
       unAvailable: true,
       cardMode: true,

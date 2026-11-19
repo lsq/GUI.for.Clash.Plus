@@ -212,19 +212,19 @@ const getTrayMenus = () => {
         {
           type: 'item',
           text: 'tray.startKernel',
-          hidden: kernelApiStore.running,
+          hidden: kernelApiStore.running || appSettings.app.kernel.panelOnlyMode,
           event: kernelApiStore.startCore,
         },
         {
           type: 'item',
           text: 'tray.restartKernel',
-          hidden: !kernelApiStore.running,
+          hidden: !kernelApiStore.running && !appSettings.app.kernel.panelOnlyMode,
           event: kernelApiStore.restartCore,
         },
         {
           type: 'item',
           text: 'tray.stopKernel',
-          hidden: !kernelApiStore.running,
+          hidden: !kernelApiStore.running || appSettings.app.kernel.panelOnlyMode,
           event: kernelApiStore.stopCore,
         },
       ],

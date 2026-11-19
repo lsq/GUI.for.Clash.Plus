@@ -78,6 +78,10 @@ export function OpenDir(arg1) {
   return window['go']['bridge']['App']['OpenDir'](arg1);
 }
 
+export function OpenFileDialog(arg1, arg2) {
+  return window['go']['bridge']['App']['OpenFileDialog'](arg1, arg2);
+}
+
 export function OpenMMDB(arg1, arg2) {
   return window['go']['bridge']['App']['OpenMMDB'](arg1, arg2);
 }
@@ -102,6 +106,10 @@ export function ReadDir(arg1) {
   return window['go']['bridge']['App']['ReadDir'](arg1);
 }
 
+export function ReadExternalFile(arg1) {
+  return window['go']['bridge']['App']['ReadExternalFile'](arg1);
+}
+
 export function ReadFile(arg1, arg2) {
   return window['go']['bridge']['App']['ReadFile'](arg1, arg2);
 }
@@ -118,6 +126,10 @@ export function RestartApp(arg1) {
   return window['go']['bridge']['App']['RestartApp'](arg1);
 }
 
+export function SaveFileDialog(arg1, arg2, arg3) {
+  return window['go']['bridge']['App']['SaveFileDialog'](arg1, arg2, arg3);
+}
+
 export function SetSystemDNS(arg1, arg2) {
   return window['go']['bridge']['App']['SetSystemDNS'](arg1, arg2);
 }
@@ -128,6 +140,10 @@ export function SetSystemProxy(arg1, arg2, arg3, arg4, arg5) {
 
 export function ShowMainWindow() {
   return window['go']['bridge']['App']['ShowMainWindow']();
+}
+
+export function StartPowerMonitor() {
+  return window['go']['bridge']['App']['StartPowerMonitor']();
 }
 
 export function StartServer(arg1, arg2, arg3) {
@@ -176,6 +192,10 @@ export function UpdateTrayMenus(arg1) {
 
 export function Upload(arg1, arg2, arg3, arg4, arg5, arg6) {
   return window['go']['bridge']['App']['Upload'](arg1, arg2, arg3, arg4, arg5, arg6);
+}
+
+export function WriteExternalFile(arg1, arg2) {
+  return window['go']['bridge']['App']['WriteExternalFile'](arg1, arg2);
 }
 
 export function WriteFile(arg1, arg2, arg3) {

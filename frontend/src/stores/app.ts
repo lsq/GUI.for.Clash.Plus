@@ -204,8 +204,9 @@ export const useAppStore = defineStore('app', () => {
 
       const { os, arch } = envStore.env
       const assetName = `${APP_NAME}-${os}-${arch}.zip`
+      const assetNameGz = `${APP_NAME}-${os}-${arch}.tar.gz`
 
-      const asset = assets.find((v: any) => v.name === assetName)
+      const asset = assets.find((v: any) => v.name === assetName || v.name === assetNameGz)
       if (!asset) throw 'Asset Not Found:' + assetName
       if (asset.uploader.login !== 'github-actions[bot]') {
         await confirm('common.warning', 'settings.kernel.risk', {

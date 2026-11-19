@@ -16,6 +16,7 @@ export const CorePidFilePath = CoreWorkingDirectory + '/pid.txt'
 export const CoreLogFilePath = CoreWorkingDirectory + '/mihomo.log'
 export const CoreConfigFilePath = CoreWorkingDirectory + '/config.yaml'
 export const CoreCacheFilePath = CoreWorkingDirectory + '/cache.db'
+export const PanelProfileId = 'panel-only-profile'
 
 export const ModeOptions = [
   {

@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { RemoveFile } from '@/bridge'
 import { CoreCacheFilePath } from '@/constant/kernel'
 import { useCoreBranch } from '@/hooks/useCoreBranch'
-import { useEnvStore, useKernelApiStore } from '@/stores'
+import { useEnvStore, useKernelApiStore, useAppSettingsStore } from '@/stores'
 import { message } from '@/utils'
 
 interface Props {
@@ -18,6 +18,7 @@ const emit = defineEmits(['config'])
 const { t } = useI18n()
 const envStore = useEnvStore()
 const kernelApiStore = useKernelApiStore()
+const appSettings = useAppSettingsStore()
 
 const {
   restartable,

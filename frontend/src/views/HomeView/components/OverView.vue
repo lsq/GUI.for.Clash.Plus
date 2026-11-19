@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getMemory } from '@/api/kernel'
 import { ref, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -34,6 +35,14 @@ const handleRestartKernel = async () => {
   } catch (error: any) {
     console.error(error)
     message.error(error)
+  }
+}
+
+const handleRestartExternal = async () => {
+  try {
+    await kernelApiStore.restartExternalCore()
+  } catch (error: any) {
+    message.error(error === 'kernel.restartNotSupported' ? t('kernel.restartNotSupported') : error)
   }
 }
 
@@ -113,7 +122,10 @@ const getCoreMemoryUsage = async (fallback: number) => {
   if (latestCoreMemoryUsageTime && Date.now() - latestCoreMemoryUsageTime < 30_000) {
     return fallback
   }
-  const useage = await ProcessMemory(kernelApiStore.pid).catch(() => fallback)
+  // const useage = await ProcessMemory(kernelApiStore.pid).catch(() => fallback)
+  const useage = appSettings.app.kernel.panelOnlyMode
+    ? await getMemory().then((m) => m?.inuse ?? fallback).catch(() => fallback)
+    : await ProcessMemory(kernelApiStore.pid).catch(() => fallback)
   latestCoreMemoryUsageTime = Date.now()
   return useage
 }
@@ -197,6 +209,18 @@ onUnmounted(() => {
         @click="handleRestartKernel"
       />
       <Button
+        v-if="appSettings.app.kernel.panelOnlyMode"
+        v-tips="'home.overview.restarting'"
+        :loading="kernelApiStore.restarting"
+        type="text"
+        size="small"
+        icon="restart"
+        @click="handleRestartExternal"
+      >
+        {{ t('home.overview.restartExternal') }}
+      </Button>
+      <Button
+        v-if="!appSettings.app.kernel.panelOnlyMode"
         v-tips="'home.overview.stop'"
         :loading="kernelApiStore.stopping"
         type="text"

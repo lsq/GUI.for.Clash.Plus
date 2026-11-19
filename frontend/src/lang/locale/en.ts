@@ -281,6 +281,8 @@ export default {
     remote: 'Remote',
     update: 'Update',
     restart: 'Restart Core',
+    restartNotSupported: 'Kernel does not support API restart (POST /restart returned 404). Use "Reload config" or restart the process manually.',
+    externalConfigPathRequired: 'Please configure the external config file path first',
   },
   router: {
     overview: 'Overview',
@@ -325,6 +327,8 @@ export default {
         'Takes effect temporarily. For persistent changes, please modify the `profile` settings.',
       updateGEO: 'Update GEO',
       needPort: 'Please set the proxy port first',
+      connect: 'Connect',
+      restartExternal: 'Restart Core',
     },
     controller: {
       name: 'Controller',
@@ -606,6 +610,8 @@ export default {
     next: 'Next Run Time',
   },
   settings: {
+    panelOnlyMode: 'Panel only (attach to external core)',
+    externalConfigPath: 'External config file path',
     personalization: 'Personalization',
     behavior: 'Behavior',
     systemProxy: 'System Proxy',

@@ -23,7 +23,11 @@ const kernelApiStore = useKernelApiStore()
 
 const handleStartKernel = async () => {
   try {
+    if (appSettingsStore.app.kernel.panelOnlyMode) {
+      await kernelApiStore.restartCore()
+    } else {
     await kernelApiStore.startCore()
+    }
   } catch (error: any) {
     console.error(error)
     message.error(error.message || error)
@@ -137,10 +141,10 @@ watch(showController, (v) => {
             </div>
           </Card>
         </div>
-        <Button :loading="kernelApiStore.starting" type="primary" @click="handleStartKernel">
-          {{ t('home.overview.start') }}
+        <Button :loading="kernelApiStore.starting || kernelApiStore.restarting" type="primary" @click="handleStartKernel">
+          {{ appSettingsStore.app.kernel.panelOnlyMode ? t('home.overview.connect') : t('home.overview.start') }}
         </Button>
-        <Button type="link" size="small" class="mt-4" @click="handleShowKernelLogs">
+        <Button v-if="!appSettingsStore.app.kernel.panelOnlyMode" type="link" size="small" class="mt-4" @click="handleShowKernelLogs">
           {{ t('home.overview.viewlog') }}
         </Button>
       </template>

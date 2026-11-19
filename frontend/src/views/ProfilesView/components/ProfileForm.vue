@@ -3,8 +3,8 @@ import { ref, inject, type Ref, computed, useTemplateRef, h } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { useBool } from '@/hooks'
-import { useProfilesStore } from '@/stores'
-import { deepClone, generateConfig, stringifyNoFolding, message, alert } from '@/utils'
+import { useProfilesStore, useAppSettingsStore } from '@/stores'
+import { deepClone, generateConfig, stringifyNoFolding, message, alert, fixProviderPaths } from '@/utils'
 
 import Button from '@/components/Button/index.vue'
 import Dropdown from '@/components/Dropdown/index.vue'
@@ -104,6 +104,9 @@ const handleAdd = () => {
 const handlePreview = async () => {
   try {
     const config = await generateConfig(profile.value)
+    if (useAppSettingsStore().app.kernel.panelOnlyMode) {
+      await fixProviderPaths(config)
+    }
     alert(profile.value.name, stringifyNoFolding(config))
   } catch (error: any) {
     message.error(error.message || error)

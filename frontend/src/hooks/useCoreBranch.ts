@@ -162,6 +162,20 @@ export const useCoreBranch = (isAlpha = false) => {
   const getLocalVersion = async (showTips = false) => {
     localVersionLoading.value = true
     try {
+      if (appSettings.app.kernel.panelOnlyMode) {
+        // 面板模式：本地版本 = 外部内核 /version 返回值
+        const detail = kernelApiStore.coreVersionDetail
+        if (!detail) {
+          message.error("GetVersion() return null")
+          return ''
+        }
+        // 复用原有正则：stable 卡只匹配 v*，alpha 卡只匹配 alpha-*
+        // 不匹配本分支时返回 ''，卡片显示 notFound，实现"对号入座"
+        const matched = detail.match(isAlpha ? /alpha-\S+/ : /^[0-9\.]+/)?.[0] || ''
+        if (!matched) return ''
+        versionDetail.value = `External kernel: ${detail}`
+        return matched
+      }
       const res = await Exec(CoreFilePath, ['-v'])
       versionDetail.value = res.trim()
       return res.match(isAlpha ? /alpha-\S+/ : /v\S+/)?.[0] || ''

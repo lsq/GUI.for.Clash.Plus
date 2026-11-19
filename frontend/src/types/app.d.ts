@@ -90,6 +90,8 @@ declare namespace App {
       realMemoryUsage: boolean
       branch: 'main' | 'alpha'
       profile: string
+      panelOnlyMode: boolean // 仅作面板开头
+      externalConfigPath: string // 外部进程使用的配置文件路径
       autoClose: boolean
       unAvailable: boolean
       cardMode: boolean

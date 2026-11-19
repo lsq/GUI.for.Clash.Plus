@@ -40,6 +40,8 @@ export function MoveFile(arg1:string,arg2:string):Promise<bridge.FlagResult>;
 
 export function OpenDir(arg1:string):Promise<bridge.FlagResult>;
 
+export function OpenFileDialog(arg1:string,arg2:string):Promise<bridge.FlagResult>;
+
 export function OpenMMDB(arg1:string,arg2:string):Promise<bridge.FlagResult>;
 
 export function OpenURI(arg1:string):Promise<bridge.FlagResult>;
@@ -52,6 +54,8 @@ export function QueryMMDB(arg1:string,arg2:string,arg3:string):Promise<bridge.Fl
 
 export function ReadDir(arg1:string):Promise<bridge.FlagResult>;
 
+export function ReadExternalFile(arg1:string):Promise<bridge.FlagResult>;
+
 export function ReadFile(arg1:string,arg2:bridge.IOOptions):Promise<bridge.FlagResult>;
 
 export function RemoveFile(arg1:string):Promise<bridge.FlagResult>;
@@ -60,11 +64,15 @@ export function Requests(arg1:string,arg2:string,arg3:Record<string, string>,arg
 
 export function RestartApp(arg1:boolean):Promise<bridge.FlagResult>;
 
+export function SaveFileDialog(arg1:string,arg2:string,arg3:string):Promise<bridge.FlagResult>;
+
 export function SetSystemDNS(arg1:string,arg2:Array<string>):Promise<bridge.FlagResult>;
 
 export function SetSystemProxy(arg1:boolean,arg2:string,arg3:string,arg4:string,arg5:Array<string>):Promise<bridge.FlagResult>;
 
 export function ShowMainWindow():Promise<void>;
+
+export function StartPowerMonitor():Promise<void>;
 
 export function StartServer(arg1:string,arg2:string,arg3:bridge.ServerOptions):Promise<bridge.FlagResult>;
 
@@ -89,5 +97,7 @@ export function UpdateTrayAndMenus(arg1:bridge.TrayContent,arg2:Array<bridge.Men
 export function UpdateTrayMenus(arg1:Array<bridge.MenuItem>):Promise<void>;
 
 export function Upload(arg1:string,arg2:string,arg3:string,arg4:Record<string, string>,arg5:string,arg6:bridge.RequestOptions):Promise<bridge.HTTPResult>;
+
+export function WriteExternalFile(arg1:string,arg2:string):Promise<bridge.FlagResult>;
 
 export function WriteFile(arg1:string,arg2:string,arg3:bridge.IOOptions):Promise<bridge.FlagResult>;

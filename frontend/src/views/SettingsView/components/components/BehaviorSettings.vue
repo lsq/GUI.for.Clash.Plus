@@ -144,6 +144,14 @@ if (envStore.env.os === OS.Windows) {
       <div class="text-16 font-bold">{{ $t('settings.closeKernelOnExit') }}</div>
       <Switch v-model="appSettings.app.closeKernelOnExit" />
     </div>
+    <div class="px-8 py-12 flex items-center justify-between">
+      <div class="text-16 font-bold">{{ $t('settings.panelOnlyMode') }}</div>
+      <Switch v-model="appSettings.app.kernel.panelOnlyMode" />
+    </div>
+    <div v-if="appSettings.app.kernel.panelOnlyMode" class="px-8 py-12">
+      <div class="text-16 font-bold mb-8">{{ $t('settings.externalConfigPath') }}</div>
+      <Input v-model="appSettings.app.kernel.externalConfigPath" editable placeholder="/etc/mihomo/config.yaml" />
+    </div>
     <div v-platform="[OS.Windows]" class="px-8 py-12 flex items-center justify-between">
       <div class="text-16 font-bold">
         {{ $t('settings.restartKernelAfterResume.name') }}

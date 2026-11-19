@@ -281,6 +281,8 @@ export default {
     remote: '远程',
     update: '更新',
     restart: '重启核心',
+    restartNotSupported: '目标内核不支持 API 重启（POST /restart 返回 404），请改用重载配置或手动重启进程',
+    externalConfigPathRequired: '请先配置外部配置文件路径',
   },
   router: {
     overview: '概览',
@@ -324,6 +326,8 @@ export default {
       settingsTips: '暂时生效，持久化请修改配置文件',
       updateGEO: '更新 GEO',
       needPort: '请先设置代理端口',
+      connect: '连接',
+      restartExternal: '重启内核',
     },
     controller: {
       name: '控制器',
@@ -749,6 +753,8 @@ export default {
       mirror: 'GitHub 加速镜像',
       reset: '重置加速镜像',
     },
+    panelOnlyMode: '仅作面板（接管外部内核）',
+    externalConfigPath: '外部配置文件路径',
   },
   about: {
     new: '新版本',

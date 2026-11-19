@@ -3,6 +3,7 @@ import { useI18n, I18nT } from 'vue-i18n'
 
 import { ClipboardSetText } from '@/bridge'
 import { DraggableOptions } from '@/constant/app'
+import { PanelProfileId } from '@/constant/kernel'
 import { View } from '@/enums/app'
 import {
   useProfilesStore,
@@ -16,6 +17,7 @@ import {
   debounce,
   deepClone,
   generateConfig,
+  fixProviderPaths,
   sampleID,
   stringifyNoFolding,
   message,
@@ -58,6 +60,10 @@ const secondaryMenusList: App.Menu[] = [
     handler: async (id: string) => {
       appSettingsStore.app.kernel.profile = id
       try {
+        if (appSettingsStore.app.kernel.panelOnlyMode) {
+          await kernelApiStore.restartCore()   // 面板模式：重载/连接，不碰进程
+          return
+        }
         const e = await kernelApiStore.stopCore().catch((e) => e)
         if (e && e !== 'The core is not running') {
           throw e
@@ -100,6 +106,9 @@ const secondaryMenusList: App.Menu[] = [
       const p = profilesStore.getProfileById(id)!
       try {
         const config = await generateConfig(p)
+        if (appSettingsStore.app.kernel.panelOnlyMode) {
+          await fixProviderPaths(config)
+        }
         alert(p.name, stringifyNoFolding(config))
       } catch (error: any) {
         message.error(error.message || error)
@@ -186,7 +195,19 @@ const handleUseProfile = async (p: App.Profile) => {
 
   appSettingsStore.app.kernel.profile = p.id
 
+  if (appSettingsStore.app.kernel.panelOnlyMode) {
+    try {
+      await kernelApiStore.restartCore()
+    } catch (error: any) {
+      message.error(error?.message || error)
+    }
+    return
+  }
   if (kernelApiStore.running) {
+  // if (p.id === PanelProfileId) {
+  // } else {
+    kernelApiStore.needRestart = true
+    message.info(t('profiles.switchNeedReload'))
     await kernelApiStore.restartCore()
   }
 }
