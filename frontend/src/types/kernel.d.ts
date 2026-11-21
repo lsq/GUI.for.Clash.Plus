@@ -28,6 +28,25 @@ export interface CoreApiProxy {
   }[]
 }
 
+export type SubscriptionInfo = {
+  Download?: number
+  Upload?: number
+  Total?: number
+  Expire?: number
+}
+
+export type VehicleType = 'HTTP' | 'File' | 'Inline' | 'Compatible'
+
+export interface CoreApiProxyProvider {
+  name: string
+  type: string
+  vehicleType: VehicleType // 'HTTP' | 'File' | 'Inline' | 'Compatible'
+  updatedAt: string
+  path: string
+  subscriptionInfo?: SubscriptionInfo
+  proxies: CoreApiProxy[]
+}
+
 export interface CoreApiProxies {
   proxies: Record<string, Proxy>
 }

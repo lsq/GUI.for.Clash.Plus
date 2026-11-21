@@ -11,7 +11,11 @@ import { generateSecureKey, sampleID } from '@/utils'
 
 import { DefaultTestURL } from './app'
 
-const { t } = i18n.global
+// const { t } = i18n.global
+// const t = (...args: Parameters<typeof i18n.global.t>) => i18n.global.t(...args)
+const t = (key: string): string => i18n.global.t(key)
+// const t = (key: string, ...args: unknown[]): string =>
+  // (i18n.global.t as (...a: unknown[]) => string)(key, ...args)
 
 const DefaultOutboundIds = {
   Select: 'outbound-select',

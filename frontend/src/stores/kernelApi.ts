@@ -48,7 +48,7 @@ import {
   fixProviderPaths,
 } from '@/utils'
 
-import type { CoreApiConfig, CoreApiProxy } from '@/types/kernel'
+import type { CoreApiConfig, CoreApiProxy, CoreApiProxyProvider, } from '@/types/kernel'
 
 export type ProxyType = 'mixed' | 'http' | 'socks'
 export type ProxyEndpoint = {
@@ -85,6 +85,7 @@ export const useKernelApiStore = defineStore('kernelApi', () => {
   })
 
   const proxies = ref<Record<string, CoreApiProxy>>({})
+  const proxyProviders = ref<CoreApiProxyProvider[]>([])
 
   const refreshConfig = async () => {
     config.value = await getConfigs()
@@ -109,18 +110,38 @@ export const useKernelApiStore = defineStore('kernelApi', () => {
 
   const refreshProviderProxies = async () => {
     const [a, { proxies: b }] = await Promise.all([getProviders(), getProxies()])
-    for (const provider in a.providers) {
-      if (!b[provider]) {
-        for (const proxy of a.providers[provider].proxies) {
-          if (!b[proxy.name]) {
-            proxy.provider = provider
-            b[proxy.name] = proxy
-          }
+
+    // 过滤内置占位和内联节点产生的供应商，保持接口返回顺序
+    proxyProviders.value = Object.values(a.providers ?? {}).filter(
+      (p) => p.name !== 'default' && p.vehicleType !== 'Compatible',
+    )
+
+    // 给节点打 provider 标记并合并进 proxies（不覆盖已有节点）
+    for (const provider of proxyProviders.value) {
+      for (const proxy of provider.proxies ?? []) {
+        proxy.provider ||= provider.name
+        if (!b[proxy.name]) {
+          b[proxy.name] = proxy
         }
       }
     }
     proxies.value = b
   }
+
+ // const refreshProviderProxies = async () => {
+ //    const [a, { proxies: b }] = await Promise.all([getProviders(), getProxies()])
+ //    for (const provider in a.providers) {
+ //      if (!b[provider]) {
+ //        for (const proxy of a.providers[provider].proxies) {
+ //          if (!b[proxy.name]) {
+ //            proxy.provider = provider
+ //            b[proxy.name] = proxy
+ //          }
+ //        }
+ //      }
+ //    }
+ //    proxies.value = b
+ //  }
 
   /* Bridge API */
   const corePid = ref(-1)
@@ -693,6 +714,7 @@ export const useKernelApiStore = defineStore('kernelApi', () => {
     refreshConfig,
     updateConfig,
     refreshProviderProxies,
+    proxyProviders,
     getProxyEndpoint,
 
     onLogs,

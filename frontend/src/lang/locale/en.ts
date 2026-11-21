@@ -335,6 +335,8 @@ export default {
       autoClose: 'Auto-close',
       unAvailable: 'Show UnAvailable',
       cardMode: 'Card Mode',
+      groups: 'Groups',
+      providers: 'Proxy Provider',
       sortBy: 'Sort By Delay',
       delay: 'Latency test URL',
       timeout: 'Latency test timeout (ms)',
@@ -346,6 +348,10 @@ export default {
         all: 'Scroll or Button',
         button: 'Button Only',
       },
+    },
+    provider: {
+      update: 'Update Subscriptions',
+      healthCheck: 'Check Health',
     },
     connections: {
       type: 'Type',

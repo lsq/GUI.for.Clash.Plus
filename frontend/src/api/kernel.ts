@@ -11,6 +11,7 @@ import type {
   CoreApiProxies,
   CoreApiConnections,
   CoreApiWsDataMap,
+  CoreApiProxyProvider,
 } from '@/types/kernel'
 
 type WsKey = keyof CoreApiWsDataMap
@@ -164,7 +165,7 @@ export const probeApiAvailability = () => request.get('/version')
 export const getConfigs = () => request.get<CoreApiConfig>(Api.Configs)
 export const setConfigs = (body = {}) => request.patch<null>(Api.Configs, body)
 export const getProxies = () => request.get<CoreApiProxies>(Api.Proxies)
-export const getProviders = () => request.get<any>(Api.Providers)
+// export const getProviders = () => request.get<any>(Api.Providers)
 export const getConnections = () => request.get<CoreApiConnections>(Api.Connections)
 export const getMemory = () => request.get<CoreApiWsDataMap['memory']>(Api.Memory)
 export const getVersion = () =>
@@ -298,3 +299,14 @@ export const restoreExternalController = async (
     secret: ext.bearer,
   })
 }
+
+export const getProviders = () =>
+  request.get<{ providers: Record<string, CoreApiProxyProvider> }>(Api.Providers)
+
+// 更新订阅（Inline 不支持，调用方控制不显示）
+export const updateProvider = (name: string) =>
+  request.put<null>(Api.Providers + '/' + encodeURIComponent(name))
+
+// 健康检查
+export const healthCheckProvider = (name: string) =>
+  request.get<null>(Api.Providers + '/' + encodeURIComponent(name) + '/healthcheck')

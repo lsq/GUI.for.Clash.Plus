@@ -1,3 +1,5 @@
+import { healthCheckProvider } from "@/api/kernel";
+
 export default {
   common: {
     grid: '网格',
@@ -334,6 +336,8 @@ export default {
       autoClose: '自动断开连接',
       unAvailable: '展示不可用节点',
       cardMode: '卡片模式',
+      groups: '代理组',
+      providers: '代理供应商',
       sortBy: '按延迟排序',
       delay: '延迟测试URL',
       timeout: '延迟测试超时时间(ms)',
@@ -345,6 +349,10 @@ export default {
         all: '滚动和关闭按钮',
         button: '仅按钮',
       },
+    },
+    provider: {
+      update: '更新订阅',
+      healthCheck: '健康检查',
     },
     connections: {
       type: '类型',

@@ -10,6 +10,10 @@ export default defineConfig({
     watch: {
       ignored: ['**/node_modules/**', '**/.git/**', '**/dist/**', '**/src/bridge/wailsjs/**'],
     },
+    hmr: {
+      host: "localhost",
+      protocol: "ws",
+    }
   },
   resolve: {
     extensions: ['.ts', '.js'],

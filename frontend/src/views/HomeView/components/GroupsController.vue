@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, onActivated } from 'vue'
+import { ref, computed, onActivated, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import ProxyList from './ProxyList.vue'
 
 import { getProxyDelay, deleteGroupFixed } from '@/api/kernel'
 import { HttpCancel } from '@/bridge'
@@ -77,9 +78,17 @@ const groups = computed(() => {
           return condition1 && condition2
         })
         .map((proxy) => {
-          const history = proxies[proxy]?.history || []
-          const delay = history[history.length - 1]?.delay || 0
-          return { ...proxies[proxy]!, delay }
+          const item = proxies[proxy]
+          const history = item?.history || []
+          let delay = history[history.length - 1]?.delay || 0
+
+          // 子组（Selector 等无自身 history）：取当前选中节点的延迟
+          if (!delay && item?.all?.length && item.now) {
+            const nowHistory = proxies[item.now]?.history || []
+            delay = nowHistory[nowHistory.length - 1]?.delay || 0
+          }
+
+          return { ...item!, delay }
         })
         .sort((a, b) => {
           if (!appSettings.app.kernel.sortByDelay || a.delay === b.delay) return 0
@@ -121,6 +130,12 @@ const isLoading = (group: string) => loadingSet.value.has(group)
 
 const isFiltered = (group: string) => filterKeywordsMap.value[group]
 
+const resolveDelayTarget = (name: string) => {
+  const proxy = kernelApiStore.proxies[name]
+  // 子组（Selector 等）没有自己的延迟，测它当前选中的节点
+  return proxy?.all?.length && proxy.now ? proxy.now : name
+}
+
 const handleGroupDelay = async (group: string) => {
   const _group = kernelApiStore.proxies[group]
   if (_group) {
@@ -134,23 +149,25 @@ const handleGroupDelay = async (group: string) => {
       index += 1
       update(`Testing... ${index} / ${_group.all.length}, success: ${success} failure: ${failure}`)
       const proxy = kernelApiStore.proxies[name]
+      const target = resolveDelayTarget(name)
+      const targetProxy = kernelApiStore.proxies[target]
       const cancelId = sampleID()
       pendingRequests.add(cancelId)
       try {
         loadingSet.value.add(name)
         const { delay = 0 } = await getProxyDelay(
-          encodeURIComponent(proxy?.provider || ''),
-          encodeURIComponent(name),
+          encodeURIComponent(targetProxy?.provider || ''),
+          encodeURIComponent(target),
           appSettings.app.kernel.testUrl || DefaultTestURL,
           appSettings.app.kernel.testTimeout || DefaultTestTimeout,
           cancelId,
         )
         success += 1
-        proxy && proxy.history.push({ delay })
+        targetProxy && targetProxy.history.push({ delay })
       } catch {
         if (!cancelled) {
           failure += 1
-          proxy && proxy.history.push({ delay: 0 })
+          targetProxy && targetProxy.history.push({ delay: 0 })
         }
       }
       pendingRequests.delete(cancelId)
@@ -185,16 +202,21 @@ const handleGroupDelay = async (group: string) => {
 }
 
 const handleProxyDelay = async (name: string) => {
+  const proxy = kernelApiStore.proxies[name]
+  // 子组 → 测当前选中节点；URLTest 组也可以直接测它自己（mihomo 支持）
+  const target = proxy?.all?.length && proxy.now ? proxy.now : name
+  const targetProxy = kernelApiStore.proxies[target]
+
   loadingSet.value.add(name)
   try {
-    const proxy = kernelApiStore.proxies[name]
     const { delay = 0 } = await getProxyDelay(
-      encodeURIComponent(proxy?.provider || ''),
-      encodeURIComponent(name),
-      appSettings.app.kernel.testUrl || DefaultTestURL,
-      appSettings.app.kernel.testTimeout || DefaultTestTimeout,
+    encodeURIComponent(targetProxy?.provider || ''),
+    encodeURIComponent(target),
+    appSettings.app.kernel.testUrl || DefaultTestURL,
+    appSettings.app.kernel.testTimeout || DefaultTestTimeout,
     )
-    proxy && proxy.history.push({ delay })
+    // 结果写到 now 节点的 history 上，显示逻辑自动生效
+    targetProxy && targetProxy.history.push({ delay })
   } catch (error: any) {
     message.error(error + ': ' + name)
   }
@@ -223,13 +245,13 @@ const handleClearGroupFixed = async (group: string) => {
   await ignoredError(kernelApiStore.refreshProviderProxies)
 }
 
-const delayColor = (delay = 0) => {
-  if (delay === 0) return 'var(--level-0-color)'
-  if (delay < 200) return 'var(--level-1-color)'
-  if (delay < 500) return 'var(--level-2-color)'
-  if (delay < 1200) return 'var(--level-3-color)'
-  return 'var(--level-4-color)'
-}
+// const delayColor = (delay = 0) => {
+//   if (delay === 0) return 'var(--level-0-color)'
+//   if (delay < 200) return 'var(--level-1-color)'
+//   if (delay < 500) return 'var(--level-2-color)'
+//   if (delay < 1200) return 'var(--level-3-color)'
+//   return 'var(--level-4-color)'
+// }
 
 const handleResetMoreSettings = () => {
   appSettings.app.kernel.testUrl = DefaultTestURL
@@ -240,6 +262,10 @@ const handleResetMoreSettings = () => {
   appSettings.app.kernel.cardColumns = DefaultCardColumns
   message.success('common.success')
 }
+
+onMounted(() => {
+  kernelApiStore.refreshProviderProxies()
+})
 
 onActivated(() => {
   kernelApiStore.refreshProviderProxies()
@@ -336,47 +362,15 @@ onActivated(() => {
     <Transition name="expand">
       <div v-if="isExpanded(group.name)" class="py-8 px-4">
         <Empty v-if="group.all.length === 0" />
-        <div
-          v-else-if="appSettings.app.kernel.cardMode"
-          :class="`grid-cols-${appSettings.app.kernel.cardColumns}`"
-          class="grid gap-8"
-        >
-          <Card
-            v-for="proxy in group.all"
-            :key="proxy.name"
-            :title="proxy.name"
-            :selected="proxy.name === group.now"
-            class="cursor-pointer"
-            @click="useProxyWithCatchError(group, proxy)"
-          >
-            <Button
-              :style="{ color: delayColor(proxy.delay) }"
-              :loading="isLoading(proxy.name)"
-              type="text"
-              size="small"
-              style="margin-left: -2px; padding-left: 2px"
-              @click.stop="handleProxyDelay(proxy.name)"
-            >
-              <div class="text-12">
-                {{ proxy.delay && proxy.delay + 'ms' }}
-              </div>
-            </Button>
-            <div class="text-12 my-2">{{ proxy.type }} {{ proxy.udp ? ':: udp' : '' }}</div>
-          </Card>
-        </div>
-        <div v-else class="grid grid-cols-32 gap-8">
-          <div
-            v-for="proxy in group.all"
-            :key="proxy.name"
-            v-tips.fast="proxy.name"
-            :style="{ background: delayColor(proxy.delay) }"
-            :class="proxy.name === group.now ? 'rounded-full shadow' : ''"
-            class="w-12 h-12 rounded-4 flex items-center justify-center"
-            @click="useProxyWithCatchError(group, proxy)"
-          >
-            <Icon v-if="isLoading(proxy.name)" icon="loading" :size="12" class="rotation" />
-          </div>
-        </div>
+        <ProxyList
+          v-else
+          :proxies="group.all"
+          :selected="group.now"
+          :loading-set="loadingSet"
+          selectable
+          @select="(proxy: any) => useProxyWithCatchError(group, proxy)"
+          @test="handleProxyDelay"
+        />
       </div>
     </Transition>
   </div>
