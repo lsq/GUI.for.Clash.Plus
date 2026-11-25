@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
+import { parse } from 'yaml'
 
 import {
   getConfigs,
@@ -19,11 +20,12 @@ import {
   getExternalApi,
   restoreExternalController,
   getVersion,
+  windowsConfigFile,
 } from '@/api/kernel'
 import { ProcessInfo, KillProcess, ExecBackground, ReadFile, RemoveFile } from '@/bridge'
 import { CoreLogFilePath, CorePidFilePath, CoreWorkingDirectory, PanelProfileId,} from '@/constant/kernel'
 // CoreConfigFilePath
-import { Branch } from '@/enums/app'
+import { Branch, OS } from '@/enums/app'
 import { RuleType } from '@/enums/kernel'
 import {
   useAppSettingsStore,
@@ -318,12 +320,14 @@ export const useKernelApiStore = defineStore('kernelApi', () => {
   const runCoreProcess = async (isAlpha: boolean, tunEnabled: boolean) => {
     const { profile: profileID, externalConfigPath } = appSettingsStore.app.kernel
     const isPanelProfile = profileID === PanelProfileId && !!externalConfigPath
+    const isWin = envStore.env.os === OS.Windows
+    const loadCfg = (isWin && isPanelProfile) ? await windowsConfigFile(externalConfigPath) : externalConfigPath
 
     // 面板配置：-f 指向外部文件，-d 指向其所在目录（保证相对路径 provider 正确解析）
     const overrides = isPanelProfile
       ? {
-          configFile: externalConfigPath,
-          homeDir: externalConfigPath ? externalConfigPath.slice(
+          configFile: loadCfg,
+          homeDir:  loadCfg ? externalConfigPath.slice(
             0,
             Math.max(externalConfigPath.lastIndexOf('/'), externalConfigPath.lastIndexOf('\\')),
           ) : '',
@@ -484,7 +488,8 @@ export const useKernelApiStore = defineStore('kernelApi', () => {
         if (profileId === PanelProfileId) {
           // await connectExternal()
           // 面板配置：让内核重新加载 externalConfigPath 文件
-          await reloadConfigs({ path: externalConfigPath }).catch((err) => {
+          const loadCfg = envStore.env.os === OS.Windows ? await windowsConfigFile(externalConfigPath) : externalConfigPath
+          await reloadConfigs({ path: loadCfg }).catch((err) => {
             throw `加载外部配置失败：${err?.message || err}`
           })
         } else {

@@ -171,7 +171,7 @@ export const useCoreBranch = (isAlpha = false) => {
         }
         // 复用原有正则：stable 卡只匹配 v*，alpha 卡只匹配 alpha-*
         // 不匹配本分支时返回 ''，卡片显示 notFound，实现"对号入座"
-        const matched = detail.match(isAlpha ? /alpha-\S+/ : /^[0-9\.]+/)?.[0] || ''
+        const matched = detail.match(isAlpha ? /alpha-\S+/ : /^v?[0-9\.]+/)?.[0] || ''
         if (!matched) return ''
         versionDetail.value = `External kernel: ${detail}`
         return matched

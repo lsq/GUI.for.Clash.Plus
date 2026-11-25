@@ -1,10 +1,11 @@
 import { Request } from '@/api/request'
 import { WebSockets } from '@/api/websocket'
 import { HttpGet, HttpPost } from '@/bridge'
-import { useAppSettingsStore, useProfilesStore } from '@/stores'
+import { useAppSettingsStore, useProfilesStore, useEnvStore, } from '@/stores'
 import { formatProxyHost, normalizeProxyHost, sleep } from '@/utils'
 import { parse } from 'yaml'
 import { ReadFile, Requests, GetEnv } from '@/bridge'
+import { OS } from '@/enums/app'
 
 import type {
   CoreApiConfig,
@@ -43,9 +44,28 @@ let externalApi: { controller:string; host: string; port: number; bearer: string
 
 export const getExternalApi = () => externalApi
 
+export const windowsConfigFile = async (cfg: string) => {
+  const basePath = cfg.slice(0,
+    Math.max(cfg.lastIndexOf('/'), cfg.lastIndexOf('\\')),
+  );
+  const configPath = `${basePath}/profiles/list.yml`;
+  const configData = await ReadFile(configPath);
+  if (!configData) {
+    return cfg
+  }
+  const cfgList = parse(configData);
+  const index = cfgList.index;
+  const loadCfg = cfgList.files[index]
+  if (!loadCfg || !loadCfg.time) {
+    return cfg
+  }
+  const result = `${basePath}/profiles/${loadCfg.time}`
+  return result
+}
+
 export const loadExternalApiConfig = async () => {
   externalApi = null
-  let { externalConfigPath } = useAppSettingsStore().app.kernel
+  let { externalConfigPath, panelOnlyMode } = useAppSettingsStore().app.kernel
   if (!externalConfigPath) return
 
   if (externalConfigPath.startsWith('~')) {
@@ -53,7 +73,9 @@ export const loadExternalApiConfig = async () => {
     if (home) externalConfigPath = home + externalConfigPath.slice(1)
   }
 
-  const content = await ReadFile(externalConfigPath)
+  const isWin = useEnvStore().env.os === OS.Windows
+  const loadCfg = (isWin && !panelOnlyMode) ? await windowsConfigFile(externalConfigPath) : externalConfigPath
+  const content = await ReadFile(loadCfg)
   const conf = parse(content) ?? {}
 
   const controller = conf['external-controller'] || '127.0.0.1:9090'
